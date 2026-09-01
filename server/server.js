@@ -18,11 +18,6 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 
-app.get("/", (req, res) => {
-    res.json({
-        message: "Personal Finance Manager API is running!"
-    });
-});
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
