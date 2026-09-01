@@ -64,17 +64,23 @@
             </div>
 
 
-            <div class="summary-card">
-
+        <div class="summary-card">
+        
+            <div class="card-title-row">
                 <p>Monthly Budget</p>
-
-                <h2 id="monthlyBudget">
-                    ₹0
-                </h2>
-
-                <span>Current month</span>
-
+        
+                <button id="setBudgetBtn" class="small-btn">
+                    Set
+                </button>
             </div>
+        
+            <h2 id="monthlyBudget">
+                ₹0
+            </h2>
+        
+            <span>Current month</span>
+        
+        </div>
 
 
             <div class="summary-card">
@@ -380,6 +386,43 @@
 
         </div>
 
+    </div>
+    <div id="budgetModal" class="modal hidden">
+    
+        <div class="modal-content">
+    
+            <div class="modal-header">
+    
+                <h2>Set Monthly Budget</h2>
+    
+                <button id="closeBudgetModalBtn">
+                    &times;
+                </button>
+    
+            </div>
+    
+            <form id="budgetForm">
+    
+                <div class="form-group">
+    
+                    <label for="budgetAmount">
+                        Monthly Budget
+                    </label>
+    
+                    <input type="number" id="budgetAmount" min="1" step="0.01" placeholder="e.g. 30000" required>
+    
+                </div>
+    
+                <p id="budgetMessage" class="form-message"></p>
+    
+                <button type="submit" class="primary-btn full-width">
+                    Save Budget
+                </button>
+    
+            </form>
+    
+        </div>
+    
     </div>
 
 

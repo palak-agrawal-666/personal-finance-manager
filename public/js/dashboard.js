@@ -21,9 +21,42 @@ const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 
 let expenses = [];
+let currentBudget = 0;
+
+const setBudgetBtn = document.getElementById("setBudgetBtn");
+const budgetModal = document.getElementById("budgetModal");
+const closeBudgetModalBtn = document.getElementById("closeBudgetModalBtn");
+const budgetForm = document.getElementById("budgetForm");
 let monthlyChart;
 let categoryChart;
 
+
+async function loadBudget() {
+
+    try {
+
+        const response = await fetch("/api/budget/current", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not fetch budget");
+        }
+
+        const data = await response.json();
+
+        currentBudget = Number(data.amount);
+
+        updateDashboard();
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+}
 
 // -------------------------
 // FETCH EXPENSES
@@ -52,6 +85,9 @@ async function loadExpenses() {
         updateDashboard();
         renderExpenses();
         updateCharts();
+        loadBudget();
+
+
 
     } catch (error) {
         console.error(error);
@@ -172,7 +208,7 @@ function updateDashboard() {
 
     // Temporary budget value
     // We'll replace this with the real budget API later.
-    const budget = 30000;
+    const budget = currentBudget;
 
     monthlyBudgetElement.textContent =
         `₹${budget.toFixed(2)}`;
@@ -570,3 +606,63 @@ function escapeHtml(value) {
 // -------------------------
 
 loadExpenses();
+
+
+setBudgetBtn.addEventListener("click", () => {
+    document.getElementById("budgetAmount").value =
+        currentBudget || "";
+
+    budgetModal.classList.remove("hidden");
+});
+closeBudgetModalBtn.addEventListener("click", () => {
+    budgetModal.classList.add("hidden");
+});
+budgetForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const amount =
+        Number(document.getElementById("budgetAmount").value);
+
+    const message =
+        document.getElementById("budgetMessage");
+
+    try {
+
+        const response = await fetch("/api/budget", {
+
+            method: "PUT",
+
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+                amount
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            message.textContent = data.message;
+            return;
+        }
+
+        currentBudget = Number(data.amount);
+
+        budgetModal.classList.add("hidden");
+
+        budgetForm.reset();
+
+        updateDashboard();
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "Unable to update budget.";
+    }
+});

@@ -24,6 +24,24 @@ const db = new sqlite3.Database("./database/finance.db", (err) => {
         }
 
         console.log("Users table ready.");
+        db.run(`
+    CREATE TABLE IF NOT EXISTS budgets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        month INTEGER NOT NULL,
+        year INTEGER NOT NULL,
+        amount REAL NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, month, year),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+`, (err) => {
+    if (err) {
+        console.error("Error creating budgets table:", err.message);
+    } else {
+        console.log("Budgets table ready.");
+    }
+});
 
         // Create expenses table
         db.run(`
