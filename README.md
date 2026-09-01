@@ -63,7 +63,7 @@ A full-stack web application for managing personal expenses, setting monthly bud
 
 
 
-## 📸 Screenshots
+###📸 Screenshots
 
 ### Landing Page
 
@@ -75,5 +75,5 @@ A full-stack web application for managing personal expenses, setting monthly bud
 
 ### Login Page
 
-![Expense Management](screenshots/login.png)
+![Login Page](screenshots/login.png)
 ```
