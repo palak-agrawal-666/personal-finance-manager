@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Personal Finance Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <p class="eyebrow">PERSONAL FINANCE</p>
+            <h1>Welcome back</h1>
+            <p>Sign in to manage your finances.</p>
+        </div>
+
+        <form id="loginForm">
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <p id="loginMessage" class="form-message"></p>
+
+            <button type="submit" class="primary-btn full-width">
+                Sign In
+            </button>
+
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account?
+            <a href="register.html">Create one</a>
+        </p>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+
+</body>
+
+</html>
