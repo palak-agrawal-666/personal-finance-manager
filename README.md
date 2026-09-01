@@ -63,7 +63,7 @@ A full-stack web application for managing personal expenses, setting monthly bud
 
 ```
 
-##📸 Screenshots
+### 📸 Screenshots
 
 ### Landing Page
 
