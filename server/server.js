@@ -37,9 +37,6 @@ app.use(
 
 // Root
 
-app.get("/", (req, res) => {
-    res.redirect("/login.html");
-});
 
 
 // Start server

@@ -1,24 +1,486 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta http-equiv="refresh" content="0; url=/login.html">
+    <meta name="description"
+        content="Finance Manager helps you track expenses, manage budgets and understand your spending.">
 
-    <title>Personal Finance Manager</title>
+    <title>Finance Manager — Know where your money goes</title>
 
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="landing-page">
 
-    <p>
-        Redirecting to Personal Finance Manager...
-    </p>
+    <div class="cursor-glow"></div>
+
+    <!-- NAVBAR -->
+
+    <header class="landing-nav">
+
+        <a href="/" class="landing-logo">
+            <span class="logo-mark">F</span>
+            Finance Manager
+        </a>
+
+        <nav class="landing-nav-links">
+
+            <a href="login.html">
+                Sign in
+            </a>
+
+            <a href="register.html" class="nav-cta">
+                Get started
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <!-- HERO -->
+
+        <section class="premium-hero">
+
+            <div class="hero-copy">
+
+                <p class="premium-eyebrow">
+                    PERSONAL FINANCE, SIMPLIFIED
+                </p>
+
+                <h1>
+                    Know where your
+                    <span>money goes.</span>
+                </h1>
+
+                <p class="premium-description">
+                    Track everyday spending, stay within your budget,
+                    and turn your transactions into useful financial
+                    insights.
+                </p>
+
+                <div class="hero-actions">
+
+                    <a href="register.html" class="premium-primary">
+                        Get started
+                        <span>→</span>
+                    </a>
+
+                    <a href="login.html" class="premium-secondary">
+                        Sign in
+                    </a>
+
+                </div>
+
+
+                <div class="hero-trust">
+
+                    <div class="trust-item">
+                        <span class="trust-dot"></span>
+                        Simple to use
+                    </div>
+
+                    <div class="trust-item">
+                        <span class="trust-dot"></span>
+                        Private by design
+                    </div>
+
+                    <div class="trust-item">
+                        <span class="trust-dot"></span>
+                        Built for everyday finances
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INTERACTIVE VISUAL -->
+
+            <div class="financial-scene">
+
+                <div class="scene-glow"></div>
+
+
+                <!-- MAIN DASHBOARD CARD -->
+
+                <div class="hero-dashboard-card">
+
+                    <div class="hero-dashboard-top">
+
+                        <div>
+
+                            <p>
+                                MONTHLY OVERVIEW
+                            </p>
+
+                            <h3>
+                                August 2026
+                            </h3>
+
+                        </div>
+
+                        <span class="mini-status">
+                            On track
+                        </span>
+
+                    </div>
+
+
+                    <div class="hero-balance">
+
+                        <span>
+                            Total spending
+                        </span>
+
+                        <strong>
+                            ₹24,580
+                        </strong>
+
+                        <small>
+                            ↓ 8.4% from last month
+                        </small>
+
+                    </div>
+
+
+                    <!-- GRAPH -->
+
+                    <div class="hero-chart">
+
+                        <div class="chart-gridline line-1"></div>
+                        <div class="chart-gridline line-2"></div>
+                        <div class="chart-gridline line-3"></div>
+
+                        <svg viewBox="0 0 500 160" preserveAspectRatio="none">
+
+                            <defs>
+
+                                <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+
+                                    <stop offset="0%" stop-color="#8BFFB0" stop-opacity="0.24" />
+
+                                    <stop offset="100%" stop-color="#8BFFB0" stop-opacity="0" />
+
+                                </linearGradient>
+
+                            </defs>
+
+
+                            <path class="chart-area" d="
+                                M0 128
+                                C45 117, 60 106, 88 110
+                                S135 90, 165 96
+                                S210 72, 242 82
+                                S286 50, 315 67
+                                S355 55, 382 59
+                                S430 35, 500 28
+                                L500 160
+                                L0 160 Z
+                                "></path>
+
+
+                            <path class="chart-line" d="
+                                M0 128
+                                C45 117, 60 106, 88 110
+                                S135 90, 165 96
+                                S210 72, 242 82
+                                S286 50, 315 67
+                                S355 55, 382 59
+                                S430 35, 500 28
+                                "></path>
+
+                        </svg>
+
+                    </div>
+
+
+                    <div class="chart-labels">
+
+                        <span>Week 1</span>
+                        <span>Week 2</span>
+                        <span>Week 3</span>
+                        <span>Week 4</span>
+
+                    </div>
+
+
+                    <!-- MINI STATS -->
+
+                    <div class="hero-mini-grid">
+
+                        <div class="hero-mini-card">
+
+                            <span>
+                                Budget
+                            </span>
+
+                            <strong>
+                                ₹30,000
+                            </strong>
+
+                            <div class="mini-progress">
+                                <span></span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="hero-mini-card">
+
+                            <span>
+                                Remaining
+                            </span>
+
+                            <strong>
+                                ₹5,420
+                            </strong>
+
+                            <small>
+                                Available
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FLOATING TRANSACTION -->
+
+                <div class="floating-card transaction-card">
+
+                    <div class="floating-icon food-icon">
+                        F
+                    </div>
+
+                    <div class="floating-content">
+
+                        <strong>
+                            Food
+                        </strong>
+
+                        <span>
+                            Dinner
+                        </span>
+
+                    </div>
+
+                    <strong class="floating-amount">
+                        −₹450
+                    </strong>
+
+                </div>
+
+
+                <!-- FLOATING INCOME -->
+
+                <div class="floating-card income-card">
+
+                    <div class="income-plus">
+                        +
+                    </div>
+
+                    <div class="floating-content">
+
+                        <strong>
+                            Income
+                        </strong>
+
+                        <span>
+                            Salary credited
+                        </span>
+
+                    </div>
+
+                    <strong class="income-amount">
+                        +₹48,000
+                    </strong>
+
+                </div>
+
+
+                <!-- BUDGET FLOATING CARD -->
+
+                <div class="floating-card budget-card">
+
+                    <span>
+                        BUDGET USED
+                    </span>
+
+                    <strong>
+                        81.9%
+                    </strong>
+
+                    <div class="budget-ring">
+                        <div></div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FEATURES -->
+
+        <section class="feature-section">
+
+            <div class="section-heading">
+
+                <p class="premium-eyebrow">
+                    EVERYTHING IN ONE PLACE
+                </p>
+
+                <h2>
+                    Built around the way you
+                    actually manage money.
+                </h2>
+
+            </div>
+
+
+            <div class="feature-grid">
+
+                <article class="premium-feature">
+
+                    <div class="feature-number">
+                        01
+                    </div>
+
+                    <h3>
+                        Track spending
+                    </h3>
+
+                    <p>
+                        Record transactions, categorize them and
+                        keep your financial history organized.
+                    </p>
+
+                </article>
+
+
+                <article class="premium-feature">
+
+                    <div class="feature-number">
+                        02
+                    </div>
+
+                    <h3>
+                        Manage your budget
+                    </h3>
+
+                    <p>
+                        Set a monthly spending limit and see exactly
+                        how much you have left.
+                    </p>
+
+                </article>
+
+
+                <article class="premium-feature">
+
+                    <div class="feature-number">
+                        03
+                    </div>
+
+                    <h3>
+                        Understand patterns
+                    </h3>
+
+                    <p>
+                        Use visual analytics to see where your money
+                        is going and spot spending trends.
+                    </p>
+
+                </article>
+
+
+                <article class="premium-feature">
+
+                    <div class="feature-number">
+                        04
+                    </div>
+
+                    <h3>
+                        Take your data with you
+                    </h3>
+
+                    <p>
+                        Export your transaction history to Excel
+                        whenever you need a detailed record.
+                    </p>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- CTA -->
+
+        <section class="final-cta">
+
+            <div>
+
+                <p class="premium-eyebrow">
+                    READY TO GET STARTED?
+                </p>
+
+                <h2>
+                    Make your money easier to understand.
+                </h2>
+
+                <p>
+                    Keep your spending organized and your budget
+                    within sight.
+                </p>
+
+            </div>
+
+
+            <a href="register.html" class="premium-primary">
+                Create your account
+                <span>→</span>
+            </a>
+
+        </section>
+
+    </main>
+
+
+    <footer class="landing-footer">
+
+        <span>
+            © 2026 Finance Manager
+        </span>
+
+        <span>
+            Personal finance, without the clutter.
+        </span>
+
+    </footer>
+
+
+    <script>
+        const glow = document.querySelector(".cursor-glow");
+
+        document.addEventListener("mousemove", (event) => {
+
+            glow.style.left = `${event.clientX}px`;
+            glow.style.top = `${event.clientY}px`;
+
+        });
+    </script>
 
 </body>
 
