@@ -4,28 +4,32 @@ const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
-// GET CURRENT MONTH'S BUDGET
+
+// GET CURRENT MONTH BUDGET
+
 router.get("/current", authenticateToken, (req, res) => {
+
     const now = new Date();
 
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    const sql = `
+    db.get(
+        `
         SELECT amount
         FROM budgets
         WHERE user_id = ?
         AND month = ?
         AND year = ?
-    `;
-
-    db.get(
-        sql,
-        [req.user.userId, month, year],
+        `,
+        [
+            req.user.userId,
+            month,
+            year
+        ],
         (err, budget) => {
-            if (err) {
-                console.error(err.message);
 
+            if (err) {
                 return res.status(500).json({
                     message: "Could not fetch budget"
                 });
@@ -38,16 +42,19 @@ router.get("/current", authenticateToken, (req, res) => {
             });
         }
     );
+
 });
 
 
-// SET / UPDATE CURRENT MONTH'S BUDGET
+// CREATE / UPDATE BUDGET
+
 router.put("/", authenticateToken, (req, res) => {
+
     const amount = Number(req.body.amount);
 
-    if (!amount || amount <= 0) {
+    if (!Number.isFinite(amount) || amount <= 0) {
         return res.status(400).json({
-            message: "Budget must be greater than 0"
+            message: "Budget must be greater than zero"
         });
     }
 
@@ -56,82 +63,36 @@ router.put("/", authenticateToken, (req, res) => {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    const selectSql = `
-        SELECT id
-        FROM budgets
-        WHERE user_id = ?
-        AND month = ?
-        AND year = ?
-    `;
+    db.run(
+        `
+        INSERT INTO budgets
+        (user_id, month, year, amount)
+        VALUES (?, ?, ?, ?)
 
-    db.get(
-        selectSql,
-        [req.user.userId, month, year],
-        (err, budget) => {
+        ON CONFLICT(user_id, month, year)
+        DO UPDATE SET amount = excluded.amount
+        `,
+        [
+            req.user.userId,
+            month,
+            year,
+            amount
+        ],
+        function (err) {
 
             if (err) {
                 return res.status(500).json({
-                    message: "Database error"
+                    message: "Could not save budget"
                 });
             }
 
-            // UPDATE EXISTING BUDGET
-            if (budget) {
-
-                db.run(
-                    `
-                    UPDATE budgets
-                    SET amount = ?
-                    WHERE id = ?
-                    `,
-                    [amount, budget.id],
-                    function (err) {
-
-                        if (err) {
-                            return res.status(500).json({
-                                message: "Could not update budget"
-                            });
-                        }
-
-                        res.json({
-                            message: "Budget updated successfully",
-                            amount
-                        });
-                    }
-                );
-
-                return;
-            }
-
-            // CREATE NEW BUDGET
-            db.run(
-                `
-                INSERT INTO budgets
-                (user_id, month, year, amount)
-                VALUES (?, ?, ?, ?)
-                `,
-                [
-                    req.user.userId,
-                    month,
-                    year,
-                    amount
-                ],
-                function (err) {
-
-                    if (err) {
-                        return res.status(500).json({
-                            message: "Could not create budget"
-                        });
-                    }
-
-                    res.status(201).json({
-                        message: "Budget created successfully",
-                        amount
-                    });
-                }
-            );
+            res.json({
+                message: "Budget saved successfully",
+                amount
+            });
         }
     );
+
 });
 
 module.exports = router;

@@ -2,85 +2,156 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 
 
+// =============================
 // LOGIN
+// =============================
+
 if (loginForm) {
+
     loginForm.addEventListener("submit", async (event) => {
+
         event.preventDefault();
 
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
+        const email =
+            document.getElementById("email")
+                .value
+                .trim();
 
-        const message = document.getElementById("loginMessage");
+        const password =
+            document.getElementById("password")
+                .value;
+
+        const message =
+            document.getElementById("loginMessage");
+
+        message.textContent = "";
 
         try {
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email,
-                    password
-                })
-            });
 
-            const data = await response.json();
+            const response = await fetch(
+                "/api/auth/login",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                }
+            );
+
+            const data =
+                await response.json();
 
             if (!response.ok) {
-                message.textContent = data.message;
+
+                message.textContent =
+                    data.message;
+
                 return;
             }
 
-            // Save JWT for authenticated requests
-            localStorage.setItem("token", data.token);
+            localStorage.setItem(
+                "token",
+                data.token
+            );
 
-            window.location.href = "dashboard.html";
+            window.location.href =
+                "/dashboard.html";
 
         } catch (error) {
+
             console.error(error);
-            message.textContent = "Unable to connect to server.";
+
+            message.textContent =
+                "Unable to connect to server.";
         }
+
     });
+
 }
 
 
+// =============================
 // REGISTER
+// =============================
+
 if (registerForm) {
-    registerForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
 
-        const name = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
+    registerForm.addEventListener(
+        "submit",
+        async (event) => {
 
-        const message = document.getElementById("registerMessage");
+            event.preventDefault();
 
-        try {
-            const response = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password
-                })
-            });
+            const name =
+                document.getElementById("name")
+                    .value
+                    .trim();
 
-            const data = await response.json();
+            const email =
+                document.getElementById("email")
+                    .value
+                    .trim();
 
-            if (!response.ok) {
-                message.textContent = data.message;
-                return;
+            const password =
+                document.getElementById("password")
+                    .value;
+
+            const message =
+                document.getElementById(
+                    "registerMessage"
+                );
+
+            message.textContent = "";
+
+            try {
+
+                const response = await fetch(
+                    "/api/auth/register",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            name,
+                            email,
+                            password
+                        })
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    message.textContent =
+                        data.message;
+
+                    return;
+                }
+
+                window.location.href =
+                    "/login.html";
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Unable to connect to server.";
             }
 
-            // Registration successful → go to login
-            window.location.href = "login.html";
-
-        } catch (error) {
-            console.error(error);
-            message.textContent = "Unable to connect to server.";
         }
-    });
+    );
+
 }

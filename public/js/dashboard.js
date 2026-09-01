@@ -1,100 +1,127 @@
 const token = localStorage.getItem("token");
 
 if (!token) {
-    window.location.href = "login.html";
+    window.location.href = "/login.html";
 }
-
-const expenseTableBody = document.getElementById("expenseTableBody");
-const expenseForm = document.getElementById("expenseForm");
-const expenseModal = document.getElementById("expenseModal");
-
-const addExpenseBtn = document.getElementById("addExpenseBtn");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const totalSpentElement = document.getElementById("totalSpent");
-const monthlyBudgetElement = document.getElementById("monthlyBudget");
-const remainingBudgetElement = document.getElementById("remainingBudget");
-const topCategoryElement = document.getElementById("topCategory");
-
-const searchInput = document.getElementById("searchInput");
-const categoryFilter = document.getElementById("categoryFilter");
 
 let expenses = [];
 let currentBudget = 0;
 
-const setBudgetBtn = document.getElementById("setBudgetBtn");
-const budgetModal = document.getElementById("budgetModal");
-const closeBudgetModalBtn = document.getElementById("closeBudgetModalBtn");
-const budgetForm = document.getElementById("budgetForm");
-let monthlyChart;
-let categoryChart;
+let monthlyChart = null;
+let categoryChart = null;
 
 
-async function loadBudget() {
+// =============================
+// ELEMENTS
+// =============================
 
-    try {
+const expenseTableBody =
+    document.getElementById("expenseTableBody");
 
-        const response = await fetch("/api/budget/current", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+const expenseForm =
+    document.getElementById("expenseForm");
 
-        if (!response.ok) {
-            throw new Error("Could not fetch budget");
+const expenseModal =
+    document.getElementById("expenseModal");
+
+const budgetModal =
+    document.getElementById("budgetModal");
+
+const searchInput =
+    document.getElementById("searchInput");
+
+const categoryFilter =
+    document.getElementById("categoryFilter");
+
+
+// =============================
+// API HELPER
+// =============================
+
+async function apiRequest(url, options = {}) {
+
+    const response = await fetch(url, {
+        ...options,
+
+        headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+            Authorization: `Bearer ${token}`
         }
+    });
 
-        const data = await response.json();
+    if (response.status === 401 ||
+        response.status === 403) {
 
-        currentBudget = Number(data.amount);
+        localStorage.removeItem("token");
 
-        updateDashboard();
+        window.location.href =
+            "/login.html";
 
-    } catch (error) {
-
-        console.error(error);
-
+        return null;
     }
+
+    return response;
 }
 
-// -------------------------
-// FETCH EXPENSES
-// -------------------------
+
+// =============================
+// LOAD USER
+// =============================
+
+async function loadUser() {
+
+    const response =
+        await apiRequest("/api/auth/me");
+
+    if (!response) return;
+
+    const user =
+        await response.json();
+
+    document.getElementById(
+        "welcomeUser"
+    ).textContent =
+        `Hi, ${user.name}`;
+}
+
+
+// =============================
+// LOAD EXPENSES
+// =============================
 
 async function loadExpenses() {
-    try {
-        const response = await fetch("/api/expenses", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
 
-        if (response.status === 401 || response.status === 403) {
-            localStorage.removeItem("token");
-            window.location.href = "login.html";
-            return;
-        }
+    try {
+
+        const response =
+            await apiRequest("/api/expenses");
+
+        if (!response) return;
 
         if (!response.ok) {
-            throw new Error("Failed to fetch expenses");
+            throw new Error(
+                "Failed to fetch expenses"
+            );
         }
 
-        expenses = await response.json();
+        expenses =
+            await response.json();
 
         updateDashboard();
         renderExpenses();
         updateCharts();
-        loadBudget();
-
-
 
     } catch (error) {
+
         console.error(error);
 
         expenseTableBody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td
+                    colspan="6"
+                    class="empty-state"
+                >
                     Unable to load expenses.
                 </td>
             </tr>
@@ -103,399 +130,495 @@ async function loadExpenses() {
 }
 
 
-// -------------------------
-// RENDER EXPENSES
-// -------------------------
+// =============================
+// LOAD BUDGET
+// =============================
 
-function renderExpenses() {
+async function loadBudget() {
 
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const selectedCategory = categoryFilter.value;
+    try {
 
-    const filteredExpenses = expenses.filter((expense) => {
+        const response =
+            await apiRequest(
+                "/api/budget/current"
+            );
 
-        const matchesSearch =
-            expense.description?.toLowerCase().includes(searchTerm) ||
-            expense.category.toLowerCase().includes(searchTerm);
+        if (!response) return;
 
-        const matchesCategory =
-            !selectedCategory ||
-            expense.category === selectedCategory;
+        const data =
+            await response.json();
 
-        return matchesSearch && matchesCategory;
-    });
+        currentBudget =
+            Number(data.amount || 0);
 
+        updateDashboard();
 
-    if (filteredExpenses.length === 0) {
-        expenseTableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">
-                    No expenses found.
-                </td>
-            </tr>
-        `;
-        return;
+    } catch (error) {
+
+        console.error(error);
     }
-
-
-    expenseTableBody.innerHTML = filteredExpenses.map((expense) => `
-        <tr>
-
-            <td>${formatDate(expense.expense_date)}</td>
-
-            <td>${escapeHtml(expense.category)}</td>
-
-            <td>${escapeHtml(expense.description || "—")}</td>
-
-            <td>${escapeHtml(expense.payment_method || "—")}</td>
-
-            <td>₹${Number(expense.amount).toFixed(2)}</td>
-
-           <td>
-    <div class="action-buttons">
-
-        <button
-            class="edit-btn"
-            onclick="editExpense(${expense.id})"
-        >
-            Edit
-        </button>
-
-        <button
-            class="delete-btn"
-            onclick="deleteExpense(${expense.id})"
-        >
-            Delete
-        </button>
-
-    </div>
-</td>
-
-        </tr>
-    `).join("");
 }
 
 
-// -------------------------
-// UPDATE DASHBOARD
-// -------------------------
+// =============================
+// DASHBOARD CALCULATIONS
+// =============================
+
+function getCurrentMonthExpenses() {
+
+    const now = new Date();
+
+    const month =
+        now.getMonth();
+
+    const year =
+        now.getFullYear();
+
+    return expenses.filter(expense => {
+
+        const date =
+            new Date(
+                expense.expense_date
+            );
+
+        return (
+            date.getMonth() === month &&
+            date.getFullYear() === year
+        );
+    });
+}
+
 
 function updateDashboard() {
 
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+    const currentExpenses =
+        getCurrentMonthExpenses();
 
-    const currentMonthExpenses = expenses.filter((expense) => {
 
-        const date = new Date(expense.expense_date);
+    // TOTAL
 
-        return (
-            date.getMonth() === currentMonth &&
-            date.getFullYear() === currentYear
+    const totalSpent =
+        currentExpenses.reduce(
+            (sum, expense) =>
+                sum + Number(expense.amount),
+            0
         );
-    });
 
 
-    const totalSpent = currentMonthExpenses.reduce(
-        (total, expense) => total + Number(expense.amount),
-        0
-    );
+    document.getElementById(
+        "totalSpent"
+    ).textContent =
+        formatCurrency(totalSpent);
 
 
-    totalSpentElement.textContent =
-        `₹${totalSpent.toFixed(2)}`;
+    // BUDGET
+
+    document.getElementById(
+        "monthlyBudget"
+    ).textContent =
+        formatCurrency(currentBudget);
 
 
-    // Temporary budget value
-    // We'll replace this with the real budget API later.
-    const budget = currentBudget;
+    // REMAINING
 
-    monthlyBudgetElement.textContent =
-        `₹${budget.toFixed(2)}`;
+    const remaining =
+        currentBudget - totalSpent;
+
+    document.getElementById(
+        "remainingBudget"
+    ).textContent =
+        formatCurrency(
+            Math.max(remaining, 0)
+        );
 
 
-    const remaining = budget - totalSpent;
+    // STATUS
 
-    remainingBudgetElement.textContent =
-        `₹${remaining.toFixed(2)}`;
+    const status =
+        document.getElementById(
+            "budgetStatus"
+        );
+
+    if (currentBudget === 0) {
+
+        status.textContent =
+            "Set a monthly budget";
+
+    } else if (remaining < 0) {
+
+        status.textContent =
+            "Budget exceeded";
+
+    } else {
+
+        status.textContent =
+            "Available";
+    }
 
 
-    // Find top spending category
+    // TOP CATEGORY
+
     const categoryTotals = {};
 
-    currentMonthExpenses.forEach((expense) => {
+    currentExpenses.forEach(expense => {
 
-        const category = expense.category;
-
-        categoryTotals[category] =
-            (categoryTotals[category] || 0) +
+        categoryTotals[expense.category] =
+            (categoryTotals[expense.category] || 0) +
             Number(expense.amount);
     });
 
 
     let topCategory = "—";
-    let highestAmount = 0;
+    let highest = 0;
 
-    for (const category in categoryTotals) {
+    Object.entries(categoryTotals)
+        .forEach(([category, amount]) => {
 
-        if (categoryTotals[category] > highestAmount) {
+            if (amount > highest) {
 
-            highestAmount = categoryTotals[category];
-            topCategory = category;
+                highest = amount;
+                topCategory = category;
 
-        }
-    }
-
-    topCategoryElement.textContent = topCategory;
-}
-
-function updateCharts() {
-    const currentYear = new Date().getFullYear();
-
-    // -------------------------
-    // MONTHLY SPENDING
-    // -------------------------
-
-    const monthlyTotals = Array(12).fill(0);
-
-    expenses.forEach((expense) => {
-        const date = new Date(expense.expense_date);
-
-        if (date.getFullYear() === currentYear) {
-            monthlyTotals[date.getMonth()] += Number(expense.amount);
-        }
-    });
-
-    if (monthlyChart) {
-        monthlyChart.destroy();
-    }
-
-    const monthlyCtx =
-        document.getElementById("monthlyChart").getContext("2d");
-
-    monthlyChart = new Chart(monthlyCtx, {
-        type: "line",
-
-        data: {
-            labels: [
-                "Jan", "Feb", "Mar", "Apr",
-                "May", "Jun", "Jul", "Aug",
-                "Sep", "Oct", "Nov", "Dec"
-            ],
-
-            datasets: [{
-                label: "Spending",
-                data: monthlyTotals,
-                tension: 0.3,
-                fill: true
-            }]
-        },
-
-        options: {
-            responsive: true,
-
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
             }
-        }
-    });
+        });
 
 
-    // -------------------------
-    // CATEGORY SPENDING
-    // -------------------------
+    document.getElementById(
+        "topCategory"
+    ).textContent = topCategory;
 
-    const categoryTotals = {};
 
-    expenses.forEach((expense) => {
-        const category = expense.category;
+    // BUDGET PROGRESS
 
-        categoryTotals[category] =
-            (categoryTotals[category] || 0) +
-            Number(expense.amount);
-    });
+    const percentage =
+        currentBudget > 0
+            ? (totalSpent / currentBudget) * 100
+            : 0;
 
-    const categories = Object.keys(categoryTotals);
-    const amounts = Object.values(categoryTotals);
+    const progress =
+        Math.min(percentage, 100);
 
-    if (categoryChart) {
-        categoryChart.destroy();
-    }
+    document.getElementById(
+        "budgetProgress"
+    ).style.width =
+        `${progress}%`;
 
-    const categoryCtx =
-        document.getElementById("categoryChart").getContext("2d");
+    document.getElementById(
+        "budgetPercentage"
+    ).textContent =
+        `${Math.round(percentage)}%`;
 
-    categoryChart = new Chart(categoryCtx, {
-        type: "doughnut",
-
-        data: {
-            labels: categories,
-
-            datasets: [{
-                data: amounts
-            }]
-        },
-
-        options: {
-            responsive: true,
-
-            plugins: {
-                legend: {
-                    position: "bottom"
-                }
-            }
-        }
-    });
 }
 
 
+// =============================
+// RENDER EXPENSES
+// =============================
 
-// -------------------------
-// ADD EXPENSE
-// -------------------------
+function renderExpenses() {
 
-expenseForm.addEventListener("submit", async (event) => {
+    const searchTerm =
+        searchInput.value
+            .trim()
+            .toLowerCase();
 
-    event.preventDefault();
-
-    const expenseData = {
-
-        amount:
-            document.getElementById("amount").value,
-
-        category:
-            document.getElementById("category").value,
-
-        description:
-            document.getElementById("description").value.trim(),
-
-        payment_method:
-            document.getElementById("paymentMethod").value,
-
-        expense_date:
-            document.getElementById("expenseDate").value
-    };
-
-    const editingId = expenseForm.dataset.editingId;
+    const category =
+        categoryFilter.value;
 
 
-    try {
+    const filtered =
+        expenses.filter(expense => {
 
-        const url = editingId
-    ? `/api/expenses/${editingId}`
-    : "/api/expenses";
+            const matchesSearch =
+                !searchTerm ||
+                expense.category
+                    .toLowerCase()
+                    .includes(searchTerm) ||
+                (expense.description || "")
+                    .toLowerCase()
+                    .includes(searchTerm);
 
-const method = editingId
-    ? "PUT"
-    : "POST";
+            const matchesCategory =
+                !category ||
+                expense.category === category;
 
-const response = await fetch(url, {
-    method: method,
-
-    headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-    },
-
-    body: JSON.stringify(expenseData)
-});
-
-        const data = await response.json();
-
-
-        if (!response.ok) {
-
-            alert(data.message);
-
-            return;
-        }
+            return (
+                matchesSearch &&
+                matchesCategory
+            );
+        });
 
 
-       expenseForm.reset();
+    if (filtered.length === 0) {
 
-delete expenseForm.dataset.editingId;
+        expenseTableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="6"
+                    class="empty-state"
+                >
+                    No expenses found.
+                </td>
+            </tr>
+        `;
 
-expenseModal.classList.add("hidden");
-
-await loadExpenses();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Unable to add expense.");
-    }
-});
-
-
-function editExpense(id) {
-
-    const expense = expenses.find(
-        expense => expense.id === id
-    );
-
-    if (!expense) {
-        return;
-    }
-
-    document.getElementById("amount").value =
-        expense.amount;
-
-    document.getElementById("category").value =
-        expense.category;
-
-    document.getElementById("description").value =
-        expense.description || "";
-
-    document.getElementById("paymentMethod").value =
-        expense.payment_method || "";
-
-    document.getElementById("expenseDate").value =
-        expense.expense_date;
-
-    expenseModal.classList.remove("hidden");
-
-    expenseForm.dataset.editingId = id;
-}
-
-// -------------------------
-// DELETE EXPENSE
-// -------------------------
-
-async function deleteExpense(id) {
-
-    const confirmed =
-        confirm("Delete this expense?");
-
-    if (!confirmed) {
         return;
     }
 
 
-    try {
+    expenseTableBody.innerHTML =
+        filtered.map(expense => `
 
-        const response = await fetch(
-            `/api/expenses/${id}`,
-            {
-                method: "DELETE",
+            <tr>
 
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                <td>
+                    ${formatDate(
+                        expense.expense_date
+                    )}
+                </td>
+
+                <td>
+                    <span class="category-badge">
+                        ${escapeHtml(
+                            expense.category
+                        )}
+                    </span>
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        expense.description || "—"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        expense.payment_method || "—"
+                    )}
+                </td>
+
+                <td class="amount-cell">
+                    ${formatCurrency(
+                        Number(expense.amount)
+                    )}
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="edit-btn"
+                            onclick="editExpense(${expense.id})"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteExpense(${expense.id})"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `).join("");
+}
+
+
+// =============================
+// ADD / EDIT EXPENSE
+// =============================
+
+expenseForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+        const editingId =
+            expenseForm.dataset.editingId;
+
+
+        const expenseData = {
+
+            amount:
+                Number(
+                    document.getElementById(
+                        "amount"
+                    ).value
+                ),
+
+            category:
+                document.getElementById(
+                    "category"
+                ).value,
+
+            description:
+                document.getElementById(
+                    "description"
+                ).value.trim(),
+
+            payment_method:
+                document.getElementById(
+                    "paymentMethod"
+                ).value,
+
+            expense_date:
+                document.getElementById(
+                    "expenseDate"
+                ).value
+
+        };
+
+
+        const url =
+            editingId
+                ? `/api/expenses/${editingId}`
+                : "/api/expenses";
+
+        const method =
+            editingId
+                ? "PUT"
+                : "POST";
+
+
+        try {
+
+            const response =
+                await apiRequest(
+                    url,
+                    {
+                        method,
+                        body:
+                            JSON.stringify(
+                                expenseData
+                            )
+                    }
+                );
+
+            if (!response) return;
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+
+                alert(data.message);
+
+                return;
             }
+
+
+            closeExpenseModal();
+
+            await loadExpenses();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Unable to save expense."
+            );
+        }
+
+    }
+);
+
+
+// =============================
+// EDIT
+// =============================
+
+window.editExpense = function(id) {
+
+    const expense =
+        expenses.find(
+            item => item.id === id
         );
 
+    if (!expense) return;
 
-        const data = await response.json();
 
+    document.getElementById(
+        "amount"
+    ).value = expense.amount;
+
+    document.getElementById(
+        "category"
+    ).value = expense.category;
+
+    document.getElementById(
+        "description"
+    ).value =
+        expense.description || "";
+
+    document.getElementById(
+        "paymentMethod"
+    ).value =
+        expense.payment_method || "";
+
+    document.getElementById(
+        "expenseDate"
+    ).value =
+        expense.expense_date;
+
+
+    expenseForm.dataset.editingId =
+        id;
+
+
+    document.getElementById(
+        "expenseModalTitle"
+    ).textContent =
+        "Edit expense";
+
+    document.getElementById(
+        "saveExpenseBtn"
+    ).textContent =
+        "Save changes";
+
+
+    expenseModal.classList.remove(
+        "hidden"
+    );
+};
+
+
+// =============================
+// DELETE
+// =============================
+
+window.deleteExpense = async function(id) {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to delete this expense?"
+        );
+
+    if (!confirmed) return;
+
+
+    try {
+
+        const response =
+            await apiRequest(
+                `/api/expenses/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response) return;
+
+        const data =
+            await response.json();
 
         if (!response.ok) {
 
@@ -503,7 +626,6 @@ async function deleteExpense(id) {
 
             return;
         }
-
 
         await loadExpenses();
 
@@ -511,43 +633,216 @@ async function deleteExpense(id) {
 
         console.error(error);
 
-        alert("Unable to delete expense.");
+        alert(
+            "Unable to delete expense."
+        );
     }
+};
+
+
+// =============================
+// MODAL
+// =============================
+
+function openExpenseModal() {
+
+    expenseForm.reset();
+
+    delete expenseForm.dataset.editingId;
+
+    document.getElementById(
+        "expenseModalTitle"
+    ).textContent =
+        "Add expense";
+
+    document.getElementById(
+        "saveExpenseBtn"
+    ).textContent =
+        "Save expense";
+
+    document.getElementById(
+        "expenseDate"
+    ).value =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    expenseModal.classList.remove(
+        "hidden"
+    );
 }
 
 
-// -------------------------
-// MODAL
-// -------------------------
+function closeExpenseModal() {
 
-addExpenseBtn.addEventListener("click", () => {
+    expenseModal.classList.add(
+        "hidden"
+    );
 
-    expenseModal.classList.remove("hidden");
+    expenseForm.reset();
 
-});
-
-
-closeModalBtn.addEventListener("click", () => {
-
-    expenseModal.classList.add("hidden");
-
-});
+    delete expenseForm.dataset.editingId;
+}
 
 
-expenseModal.addEventListener("click", (event) => {
+document.getElementById(
+    "addExpenseBtn"
+).addEventListener(
+    "click",
+    openExpenseModal
+);
 
-    if (event.target === expenseModal) {
 
-        expenseModal.classList.add("hidden");
+document.getElementById(
+    "closeModalBtn"
+).addEventListener(
+    "click",
+    closeExpenseModal
+);
+
+
+document.getElementById(
+    "cancelExpenseBtn"
+).addEventListener(
+    "click",
+    closeExpenseModal
+);
+
+
+expenseModal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target === expenseModal
+        ) {
+            closeExpenseModal();
+        }
+    }
+);
+
+
+// =============================
+// BUDGET
+// =============================
+
+document.getElementById(
+    "setBudgetBtn"
+).addEventListener(
+    "click",
+    () => {
+
+        document.getElementById(
+            "budgetAmount"
+        ).value =
+            currentBudget || "";
+
+        document.getElementById(
+            "budgetMessage"
+        ).textContent = "";
+
+        budgetModal.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+document.getElementById(
+    "closeBudgetModalBtn"
+).addEventListener(
+    "click",
+    closeBudgetModal
+);
+
+
+document.getElementById(
+    "cancelBudgetBtn"
+).addEventListener(
+    "click",
+    closeBudgetModal
+);
+
+
+function closeBudgetModal() {
+
+    budgetModal.classList.add(
+        "hidden"
+    );
+}
+
+
+document.getElementById(
+    "budgetForm"
+).addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+        const amount =
+            Number(
+                document.getElementById(
+                    "budgetAmount"
+                ).value
+            );
+
+
+        try {
+
+            const response =
+                await apiRequest(
+                    "/api/budget",
+                    {
+                        method: "PUT",
+
+                        body:
+                            JSON.stringify({
+                                amount
+                            })
+                    }
+                );
+
+            if (!response) return;
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+
+                document.getElementById(
+                    "budgetMessage"
+                ).textContent =
+                    data.message;
+
+                return;
+            }
+
+
+            currentBudget =
+                Number(data.amount);
+
+            closeBudgetModal();
+
+            updateDashboard();
+
+        } catch (error) {
+
+            console.error(error);
+
+            document.getElementById(
+                "budgetMessage"
+            ).textContent =
+                "Unable to save budget.";
+        }
 
     }
+);
 
-});
 
-
-// -------------------------
+// =============================
 // FILTERS
-// -------------------------
+// =============================
 
 searchInput.addEventListener(
     "input",
@@ -560,33 +855,358 @@ categoryFilter.addEventListener(
 );
 
 
-// -------------------------
+// =============================
 // LOGOUT
-// -------------------------
+// =============================
 
-logoutBtn.addEventListener("click", () => {
+document.getElementById(
+    "logoutBtn"
+).addEventListener(
+    "click",
+    () => {
 
-    localStorage.removeItem("token");
+        localStorage.removeItem(
+            "token"
+        );
 
-    window.location.href = "login.html";
+        window.location.href =
+            "/login.html";
+    }
+);
 
-});
+
+// =============================
+// CHARTS
+// =============================
+
+function updateCharts() {
+
+    createMonthlyChart();
+
+    createCategoryChart();
+}
 
 
-// -------------------------
+function createMonthlyChart() {
+
+    const monthlyTotals =
+        Array(12).fill(0);
+
+    const currentYear =
+        new Date().getFullYear();
+
+
+    expenses.forEach(expense => {
+
+        const date =
+            new Date(
+                expense.expense_date
+            );
+
+        if (
+            date.getFullYear() ===
+            currentYear
+        ) {
+
+            monthlyTotals[
+                date.getMonth()
+            ] += Number(
+                expense.amount
+            );
+        }
+
+    });
+
+
+    if (monthlyChart) {
+        monthlyChart.destroy();
+    }
+
+
+    const context =
+        document.getElementById(
+            "monthlyChart"
+        ).getContext("2d");
+
+
+    monthlyChart =
+        new Chart(context, {
+
+            type: "line",
+
+            data: {
+
+                labels: [
+                    "Jan", "Feb", "Mar",
+                    "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep",
+                    "Oct", "Nov", "Dec"
+                ],
+
+                datasets: [{
+                    data: monthlyTotals,
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    tension: 0.35,
+                    fill: true
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        ticks: {
+                            callback: value =>
+                                `₹${value}`
+                        }
+                    }
+                }
+            }
+        });
+}
+
+
+function createCategoryChart() {
+
+    const totals = {};
+
+    expenses.forEach(expense => {
+
+        totals[expense.category] =
+            (totals[expense.category] || 0) +
+            Number(expense.amount);
+
+    });
+
+
+    const labels =
+        Object.keys(totals);
+
+    const values =
+        Object.values(totals);
+
+
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+
+
+    const context =
+        document.getElementById(
+            "categoryChart"
+        ).getContext("2d");
+
+
+    categoryChart =
+        new Chart(context, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels,
+
+                datasets: [{
+                    data: values
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                cutout: "68%",
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+}
+
+
+// =============================
+// EXCEL EXPORT
+// =============================
+
+document.getElementById(
+    "exportBtn"
+).addEventListener(
+    "click",
+    exportExpenses
+);
+
+
+async function exportExpenses() {
+
+    if (expenses.length === 0) {
+
+        alert(
+            "There are no expenses to export."
+        );
+
+        return;
+    }
+
+
+    const workbook =
+        new ExcelJS.Workbook();
+
+    const sheet =
+        workbook.addWorksheet(
+            "Expenses"
+        );
+
+
+    sheet.columns = [
+
+        {
+            header: "Date",
+            key: "date",
+            width: 15
+        },
+
+        {
+            header: "Category",
+            key: "category",
+            width: 18
+        },
+
+        {
+            header: "Description",
+            key: "description",
+            width: 30
+        },
+
+        {
+            header: "Payment Method",
+            key: "payment",
+            width: 20
+        },
+
+        {
+            header: "Amount",
+            key: "amount",
+            width: 15
+        }
+
+    ];
+
+
+    expenses.forEach(expense => {
+
+        sheet.addRow({
+
+            date:
+                expense.expense_date,
+
+            category:
+                expense.category,
+
+            description:
+                expense.description || "",
+
+            payment:
+                expense.payment_method || "",
+
+            amount:
+                Number(expense.amount)
+
+        });
+
+    });
+
+
+    sheet.getRow(1).font = {
+        bold: true
+    };
+
+
+    sheet.getColumn(
+        "amount"
+    ).numFmt =
+        '₹#,##0.00';
+
+
+    const buffer =
+        await workbook.xlsx.writeBuffer();
+
+
+    const blob =
+        new Blob(
+            [buffer],
+            {
+                type:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "personal-finance-expenses.xlsx";
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+
+// =============================
 // HELPERS
-// -------------------------
+// =============================
+
+function formatCurrency(amount) {
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2
+        }
+    ).format(amount);
+}
+
 
 function formatDate(dateString) {
 
-    const date = new Date(dateString);
-
-    return date.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-    });
-
+    return new Date(
+        dateString
+    ).toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
 }
 
 
@@ -601,68 +1221,18 @@ function escapeHtml(value) {
 }
 
 
-// -------------------------
-// INITIAL LOAD
-// -------------------------
+// =============================
+// INITIALIZE
+// =============================
 
-loadExpenses();
+async function initializeDashboard() {
+
+    await loadUser();
+
+    await loadExpenses();
+
+    await loadBudget();
+}
 
 
-setBudgetBtn.addEventListener("click", () => {
-    document.getElementById("budgetAmount").value =
-        currentBudget || "";
-
-    budgetModal.classList.remove("hidden");
-});
-closeBudgetModalBtn.addEventListener("click", () => {
-    budgetModal.classList.add("hidden");
-});
-budgetForm.addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const amount =
-        Number(document.getElementById("budgetAmount").value);
-
-    const message =
-        document.getElementById("budgetMessage");
-
-    try {
-
-        const response = await fetch("/api/budget", {
-
-            method: "PUT",
-
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-
-            body: JSON.stringify({
-                amount
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            message.textContent = data.message;
-            return;
-        }
-
-        currentBudget = Number(data.amount);
-
-        budgetModal.classList.add("hidden");
-
-        budgetForm.reset();
-
-        updateDashboard();
-
-    } catch (error) {
-
-        console.error(error);
-
-        message.textContent =
-            "Unable to update budget.";
-    }
-});
+initializeDashboard();

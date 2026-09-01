@@ -4,25 +4,79 @@ const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
-// CREATE EXPENSE
-router.post("/", authenticateToken, (req, res) => {
-    const {
-        amount,
-        category,
-        description,
-        payment_method,
-        expense_date
-    } = req.body;
 
-    if (!amount || !category || !expense_date) {
+// =============================
+// GET EXPENSES
+// =============================
+
+router.get("/", authenticateToken, (req, res) => {
+
+    const sql = `
+        SELECT
+            id,
+            amount,
+            category,
+            description,
+            payment_method,
+            expense_date,
+            created_at
+        FROM expenses
+        WHERE user_id = ?
+        ORDER BY expense_date DESC, created_at DESC
+    `;
+
+    db.all(
+        sql,
+        [req.user.userId],
+        (err, expenses) => {
+
+            if (err) {
+                return res.status(500).json({
+                    message: "Could not fetch expenses"
+                });
+            }
+
+            res.json(expenses);
+        }
+    );
+
+});
+
+
+// =============================
+// CREATE EXPENSE
+// =============================
+
+router.post("/", authenticateToken, (req, res) => {
+
+    const amount = Number(req.body.amount);
+    const category = req.body.category?.trim();
+    const description = req.body.description?.trim() || null;
+    const paymentMethod =
+        req.body.payment_method?.trim() || null;
+    const expenseDate = req.body.expense_date;
+
+    if (
+        !Number.isFinite(amount) ||
+        amount <= 0 ||
+        !category ||
+        !expenseDate
+    ) {
         return res.status(400).json({
-            message: "Amount, category and date are required"
+            message: "Valid amount, category and date are required"
         });
     }
 
     const sql = `
         INSERT INTO expenses
-        (user_id, amount, category, description, payment_method, expense_date)
+        (
+            user_id,
+            amount,
+            category,
+            description,
+            payment_method,
+            expense_date
+        )
         VALUES (?, ?, ?, ?, ?, ?)
     `;
 
@@ -32,14 +86,13 @@ router.post("/", authenticateToken, (req, res) => {
             req.user.userId,
             amount,
             category,
-            description || null,
-            payment_method || null,
-            expense_date
+            description,
+            paymentMethod,
+            expenseDate
         ],
         function (err) {
-            if (err) {
-                console.error(err.message);
 
+            if (err) {
                 return res.status(500).json({
                     message: "Could not add expense"
                 });
@@ -51,56 +104,44 @@ router.post("/", authenticateToken, (req, res) => {
             });
         }
     );
+
 });
 
 
-// GET ALL EXPENSES
-router.get("/", authenticateToken, (req, res) => {
-    const sql = `
-        SELECT *
-        FROM expenses
-        WHERE user_id = ?
-        ORDER BY expense_date DESC, created_at DESC
-    `;
-
-    db.all(sql, [req.user.userId], (err, expenses) => {
-        if (err) {
-            console.error(err.message);
-
-            return res.status(500).json({
-                message: "Could not fetch expenses"
-            });
-        }
-
-        res.json(expenses);
-    });
-});
-
-
+// =============================
 // UPDATE EXPENSE
-router.put("/:id", authenticateToken, (req, res) => {
-    const {
-        amount,
-        category,
-        description,
-        payment_method,
-        expense_date
-    } = req.body;
+// =============================
 
-    if (!amount || !category || !expense_date) {
+router.put("/:id", authenticateToken, (req, res) => {
+
+    const amount = Number(req.body.amount);
+    const category = req.body.category?.trim();
+    const description = req.body.description?.trim() || null;
+    const paymentMethod =
+        req.body.payment_method?.trim() || null;
+    const expenseDate = req.body.expense_date;
+
+    if (
+        !Number.isFinite(amount) ||
+        amount <= 0 ||
+        !category ||
+        !expenseDate
+    ) {
         return res.status(400).json({
-            message: "Amount, category and date are required"
+            message: "Valid amount, category and date are required"
         });
     }
 
     const sql = `
         UPDATE expenses
-        SET amount = ?,
+        SET
+            amount = ?,
             category = ?,
             description = ?,
             payment_method = ?,
             expense_date = ?
-        WHERE id = ? AND user_id = ?
+        WHERE id = ?
+        AND user_id = ?
     `;
 
     db.run(
@@ -108,16 +149,15 @@ router.put("/:id", authenticateToken, (req, res) => {
         [
             amount,
             category,
-            description || null,
-            payment_method || null,
-            expense_date,
+            description,
+            paymentMethod,
+            expenseDate,
             req.params.id,
             req.user.userId
         ],
         function (err) {
-            if (err) {
-                console.error(err.message);
 
+            if (err) {
                 return res.status(500).json({
                     message: "Could not update expense"
                 });
@@ -134,23 +174,29 @@ router.put("/:id", authenticateToken, (req, res) => {
             });
         }
     );
+
 });
 
 
+// =============================
 // DELETE EXPENSE
+// =============================
+
 router.delete("/:id", authenticateToken, (req, res) => {
-    const sql = `
-        DELETE FROM expenses
-        WHERE id = ? AND user_id = ?
-    `;
 
     db.run(
-        sql,
-        [req.params.id, req.user.userId],
+        `
+        DELETE FROM expenses
+        WHERE id = ?
+        AND user_id = ?
+        `,
+        [
+            req.params.id,
+            req.user.userId
+        ],
         function (err) {
-            if (err) {
-                console.error(err.message);
 
+            if (err) {
                 return res.status(500).json({
                     message: "Could not delete expense"
                 });
@@ -167,6 +213,8 @@ router.delete("/:id", authenticateToken, (req, res) => {
             });
         }
     );
+
 });
+
 
 module.exports = router;

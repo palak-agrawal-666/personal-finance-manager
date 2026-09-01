@@ -2,14 +2,22 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../../database/database");
+const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "development_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
+
+// =============================
 // REGISTER
+// =============================
+
 router.post("/register", async (req, res) => {
-    const { name, email, password } = req.body;
+
+    const name = req.body.name?.trim();
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password;
 
     if (!name || !email || !password) {
         return res.status(400).json({
@@ -17,45 +25,60 @@ router.post("/register", async (req, res) => {
         });
     }
 
+    if (password.length < 6) {
+        return res.status(400).json({
+            message: "Password must be at least 6 characters"
+        });
+    }
+
     try {
+
         db.get(
             "SELECT id FROM users WHERE email = ?",
             [email],
-            async (err, user) => {
+            async (err, existingUser) => {
+
                 if (err) {
                     return res.status(500).json({
                         message: "Database error"
                     });
                 }
 
-                if (user) {
+                if (existingUser) {
                     return res.status(409).json({
-                        message: "Email already registered"
+                        message: "Email is already registered"
                     });
                 }
 
-                const hashedPassword = await bcrypt.hash(password, 10);
+                const hashedPassword =
+                    await bcrypt.hash(password, 10);
 
                 db.run(
-                    `INSERT INTO users (name, email, password)
-                     VALUES (?, ?, ?)`,
+                    `
+                    INSERT INTO users
+                    (name, email, password)
+                    VALUES (?, ?, ?)
+                    `,
                     [name, email, hashedPassword],
                     function (err) {
+
                         if (err) {
                             return res.status(500).json({
-                                message: "Could not register user"
+                                message: "Could not create account"
                             });
                         }
 
                         res.status(201).json({
-                            message: "User registered successfully",
+                            message: "Account created successfully",
                             userId: this.lastID
                         });
                     }
                 );
             }
         );
+
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
@@ -65,9 +88,14 @@ router.post("/register", async (req, res) => {
 });
 
 
+// =============================
 // LOGIN
+// =============================
+
 router.post("/login", (req, res) => {
-    const { email, password } = req.body;
+
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password;
 
     if (!email || !password) {
         return res.status(400).json({
@@ -76,9 +104,14 @@ router.post("/login", (req, res) => {
     }
 
     db.get(
-        "SELECT * FROM users WHERE email = ?",
+        `
+        SELECT id, name, email, password
+        FROM users
+        WHERE email = ?
+        `,
         [email],
         async (err, user) => {
+
             if (err) {
                 return res.status(500).json({
                     message: "Database error"
@@ -91,12 +124,10 @@ router.post("/login", (req, res) => {
                 });
             }
 
-            const passwordMatch = await bcrypt.compare(
-                password,
-                user.password
-            );
+            const passwordMatches =
+                await bcrypt.compare(password, user.password);
 
-            if (!passwordMatch) {
+            if (!passwordMatches) {
                 return res.status(401).json({
                     message: "Invalid email or password"
                 });
@@ -105,6 +136,7 @@ router.post("/login", (req, res) => {
             const token = jwt.sign(
                 {
                     userId: user.id,
+                    name: user.name,
                     email: user.email
                 },
                 JWT_SECRET,
@@ -120,5 +152,21 @@ router.post("/login", (req, res) => {
         }
     );
 });
+
+
+// =============================
+// CURRENT USER
+// =============================
+
+router.get("/me", authenticateToken, (req, res) => {
+
+    res.json({
+        id: req.user.userId,
+        name: req.user.name,
+        email: req.user.email
+    });
+
+});
+
 
 module.exports = router;

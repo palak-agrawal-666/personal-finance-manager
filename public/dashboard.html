@@ -2,29 +2,35 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Dashboard | Personal Finance Manager</title>
+    <title>Dashboard | Personal Finance</title>
 
     <link rel="stylesheet" href="css/style.css">
+
 </head>
 
 <body>
 
-    <!-- TOP NAVIGATION -->
     <header class="topbar">
 
         <div class="brand">
-            Personal Finance
+            Finance Manager
         </div>
 
         <div class="topbar-right">
-            <span id="welcomeUser">Welcome</span>
 
-            <button id="logoutBtn">
+            <span id="welcomeUser">
+                Welcome
+            </span>
+
+            <button id="logoutBtn" class="ghost-btn">
                 Logout
             </button>
+
         </div>
 
     </header>
@@ -32,79 +38,147 @@
 
     <main class="dashboard">
 
-        <!-- PAGE HEADER -->
         <section class="page-header">
 
             <div>
-                <p class="eyebrow">OVERVIEW</p>
 
-                <h1>Your finances at a glance</h1>
+                <p class="eyebrow">
+                    OVERVIEW
+                </p>
+
+                <h1>
+                    Your finances at a glance
+                </h1>
+
+                <p class="page-subtitle">
+                    Track spending, manage your budget and understand your habits.
+                </p>
+
             </div>
 
-            <button id="addExpenseBtn" class="primary-btn">
-                + Add Expense
-            </button>
+
+            <div class="header-actions">
+
+                <button id="exportBtn" class="secondary-btn">
+                    Export
+                </button>
+
+                <button id="addExpenseBtn" class="primary-btn">
+                    + Add expense
+                </button>
+
+            </div>
 
         </section>
 
 
-        <!-- SUMMARY CARDS -->
+        <!-- SUMMARY -->
+
         <section class="summary-grid">
 
             <div class="summary-card">
 
-                <p>Total Spent</p>
+                <p>Total spent</p>
 
                 <h2 id="totalSpent">
                     ₹0
                 </h2>
 
-                <span>This month</span>
+                <span>
+                    This month
+                </span>
 
             </div>
-
-
-        <div class="summary-card">
-        
-            <div class="card-title-row">
-                <p>Monthly Budget</p>
-        
-                <button id="setBudgetBtn" class="small-btn">
-                    Set
-                </button>
-            </div>
-        
-            <h2 id="monthlyBudget">
-                ₹0
-            </h2>
-        
-            <span>Current month</span>
-        
-        </div>
 
 
             <div class="summary-card">
 
-                <p>Remaining</p>
+                <div class="card-title-row">
+
+                    <p>
+                        Monthly budget
+                    </p>
+
+                    <button id="setBudgetBtn" class="small-btn">
+                        Set
+                    </button>
+
+                </div>
+
+                <h2 id="monthlyBudget">
+                    ₹0
+                </h2>
+
+                <span>
+                    Current month
+                </span>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <p>
+                    Remaining
+                </p>
 
                 <h2 id="remainingBudget">
                     ₹0
                 </h2>
 
-                <span>Available</span>
+                <span id="budgetStatus">
+                    Available
+                </span>
 
             </div>
 
 
             <div class="summary-card">
 
-                <p>Top Category</p>
+                <p>
+                    Top category
+                </p>
 
                 <h2 id="topCategory">
                     —
                 </h2>
 
-                <span>This month</span>
+                <span>
+                    This month
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- BUDGET PROGRESS -->
+
+        <section class="panel budget-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        BUDGET
+                    </p>
+
+                    <h3>
+                        Monthly budget progress
+                    </h3>
+
+                </div>
+
+                <strong id="budgetPercentage">
+                    0%
+                </strong>
+
+            </div>
+
+            <div class="progress-track">
+
+                <div id="budgetProgress" class="progress-bar"></div>
 
             </div>
 
@@ -112,6 +186,7 @@
 
 
         <!-- ANALYTICS -->
+
         <section class="analytics-grid">
 
             <div class="panel">
@@ -119,14 +194,22 @@
                 <div class="panel-header">
 
                     <div>
-                        <p class="eyebrow">SPENDING</p>
 
-                        <h3>Monthly Overview</h3>
+                        <p class="eyebrow">
+                            SPENDING
+                        </p>
+
+                        <h3>
+                            Monthly overview
+                        </h3>
+
                     </div>
 
                 </div>
 
-                <canvas id="monthlyChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
 
             </div>
 
@@ -136,14 +219,22 @@
                 <div class="panel-header">
 
                     <div>
-                        <p class="eyebrow">CATEGORIES</p>
 
-                        <h3>Where your money goes</h3>
+                        <p class="eyebrow">
+                            CATEGORIES
+                        </p>
+
+                        <h3>
+                            Where your money goes
+                        </h3>
+
                     </div>
 
                 </div>
 
-                <canvas id="categoryChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
 
             </div>
 
@@ -151,14 +242,21 @@
 
 
         <!-- TRANSACTIONS -->
+
         <section class="panel transactions-panel">
 
-            <div class="panel-header">
+            <div class="panel-header transactions-header">
 
                 <div>
-                    <p class="eyebrow">TRANSACTIONS</p>
 
-                    <h3>Recent Expenses</h3>
+                    <p class="eyebrow">
+                        TRANSACTIONS
+                    </p>
+
+                    <h3>
+                        Recent expenses
+                    </h3>
+
                 </div>
 
 
@@ -167,7 +265,7 @@
                     <select id="categoryFilter">
 
                         <option value="">
-                            All Categories
+                            All categories
                         </option>
 
                         <option value="Food">
@@ -197,7 +295,7 @@
                     </select>
 
 
-                    <input type="text" id="searchInput" placeholder="Search...">
+                    <input type="search" id="searchInput" placeholder="Search expenses">
 
                 </div>
 
@@ -213,15 +311,10 @@
                         <tr>
 
                             <th>Date</th>
-
                             <th>Category</th>
-
                             <th>Description</th>
-
                             <th>Payment</th>
-
                             <th>Amount</th>
-
                             <th>Action</th>
 
                         </tr>
@@ -250,7 +343,7 @@
     </main>
 
 
-    <!-- ADD EXPENSE MODAL -->
+    <!-- EXPENSE MODAL -->
 
     <div id="expenseModal" class="modal hidden">
 
@@ -258,12 +351,20 @@
 
             <div class="modal-header">
 
-                <h2>
-                    Add Expense
-                </h2>
+                <div>
 
-                <button id="closeModalBtn">
-                    &times;
+                    <p class="eyebrow">
+                        TRANSACTION
+                    </p>
+
+                    <h2 id="expenseModalTitle">
+                        Add expense
+                    </h2>
+
+                </div>
+
+                <button id="closeModalBtn" class="modal-close">
+                    ×
                 </button>
 
             </div>
@@ -277,7 +378,7 @@
                         Amount
                     </label>
 
-                    <input type="number" id="amount" min="0" step="0.01" required>
+                    <input type="number" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
 
                 </div>
 
@@ -337,7 +438,7 @@
                 <div class="form-group">
 
                     <label for="paymentMethod">
-                        Payment Method
+                        Payment method
                     </label>
 
                     <select id="paymentMethod">
@@ -350,12 +451,12 @@
                             UPI
                         </option>
 
-                        <option value="Cash">
-                            Cash
-                        </option>
-
                         <option value="Card">
                             Card
+                        </option>
+
+                        <option value="Cash">
+                            Cash
                         </option>
 
                         <option value="Bank Transfer">
@@ -378,58 +479,91 @@
                 </div>
 
 
-                <button type="submit" class="primary-btn full-width">
-                    Add Expense
-                </button>
+                <div class="modal-actions">
 
-            </form>
+                    <button type="button" id="cancelExpenseBtn" class="secondary-btn">
+                        Cancel
+                    </button>
 
-        </div>
+                    <button type="submit" class="primary-btn" id="saveExpenseBtn">
+                        Save expense
+                    </button>
 
-    </div>
-    <div id="budgetModal" class="modal hidden">
-    
-        <div class="modal-content">
-    
-            <div class="modal-header">
-    
-                <h2>Set Monthly Budget</h2>
-    
-                <button id="closeBudgetModalBtn">
-                    &times;
-                </button>
-    
-            </div>
-    
-            <form id="budgetForm">
-    
-                <div class="form-group">
-    
-                    <label for="budgetAmount">
-                        Monthly Budget
-                    </label>
-    
-                    <input type="number" id="budgetAmount" min="1" step="0.01" placeholder="e.g. 30000" required>
-    
                 </div>
-    
-                <p id="budgetMessage" class="form-message"></p>
-    
-                <button type="submit" class="primary-btn full-width">
-                    Save Budget
-                </button>
-    
+
             </form>
-    
+
         </div>
-    
+
     </div>
 
 
-    <!-- Chart.js -->
+    <!-- BUDGET MODAL -->
+
+    <div id="budgetModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        BUDGET
+                    </p>
+
+                    <h2>
+                        Set monthly budget
+                    </h2>
+
+                </div>
+
+                <button id="closeBudgetModalBtn" class="modal-close">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="budgetForm">
+
+                <div class="form-group">
+
+                    <label for="budgetAmount">
+                        Monthly budget
+                    </label>
+
+                    <input type="number" id="budgetAmount" min="1" step="0.01" placeholder="30000" required>
+
+                </div>
+
+
+                <div id="budgetMessage" class="form-message"></div>
+
+
+                <div class="modal-actions">
+
+                    <button type="button" id="cancelBudgetBtn" class="secondary-btn">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="primary-btn">
+                        Save budget
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Our JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+
     <script src="js/dashboard.js"></script>
 
 </body>
