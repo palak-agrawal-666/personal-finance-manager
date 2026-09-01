@@ -61,9 +61,9 @@ A full-stack web application for managing personal expenses, setting monthly bud
                            ▼
                       SQLite Database
 
+```
 
-
-###📸 Screenshots
+##📸 Screenshots
 
 ### Landing Page
 
@@ -76,4 +76,4 @@ A full-stack web application for managing personal expenses, setting monthly bud
 ### Login Page
 
 ![Login Page](screenshots/login.png)
-```
+
